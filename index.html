@@ -59,16 +59,18 @@
   .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
 
   /* ---------- top nav ---------- */
-  .progress-bar{
-    position:fixed;top:0;left:0;height:2px;width:0%;
-    background:linear-gradient(90deg, var(--gold), var(--pink));
-    z-index:70;transition:width .1s linear;
-  }
   .read-progress{
     position:fixed;top:0;left:0;height:3px;width:0%;z-index:100;
     background:linear-gradient(90deg, var(--gold), var(--pink));
     transition:width .1s linear;
   }
+  .skip-link{
+    position:absolute;top:-100px;left:12px;z-index:200;
+    background:var(--gold);color:#1a0f14;padding:10px 18px;border-radius:0 0 6px 6px;
+    font-family:'Space Mono',monospace;font-size:0.8rem;text-decoration:none;
+    transition:top .2s;
+  }
+  .skip-link:focus{top:0;}
   .noscript-banner{
     background:var(--red);color:var(--cream);text-align:center;
     padding:10px 20px;font-family:'Space Mono',monospace;font-size:0.8rem;
@@ -84,6 +86,15 @@
     border-radius:0 6px 6px 0;font-style:italic;color:var(--cream-dim);font-size:0.95rem;
     max-width:560px;
   }
+  .on-this-day{
+    margin-bottom:32px;padding:16px 20px;background:var(--bg-card);
+    border:1px solid var(--gold);border-radius:6px;
+  }
+  .otd-tag{
+    display:inline-block;color:var(--gold);font-size:0.7rem;letter-spacing:0.1em;
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .otd-text{color:var(--cream);font-family:'Lora',serif;font-style:italic;font-size:0.98rem;}
   .topnav{
     position:sticky;top:0;z-index:50;
     background:rgba(13,11,18,0.88);
@@ -398,6 +409,13 @@
     font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--muted);
   }
   footer .k{color:var(--gold);}
+  .social-share{display:flex;justify-content:center;gap:12px;margin-top:18px;}
+  .share-social{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+    background:transparent;color:var(--cream-dim);display:flex;align-items:center;justify-content:center;
+    font-size:1rem;text-decoration:none;cursor:pointer;transition:.2s;
+  }
+  .share-social:hover{border-color:var(--gold);color:var(--gold);}
 
   /* ---------- audio toggle ---------- */
   .audio-btn{
@@ -411,6 +429,17 @@
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
 
   /* ---------- year ruler ---------- */
+  .on-this-day{
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:linear-gradient(90deg, rgba(212,175,55,0.12), transparent);
+    border:1px solid var(--gold-dim);border-left:3px solid var(--gold);
+    border-radius:0 6px 6px 0;padding:14px 18px;margin-bottom:26px;
+  }
+  .on-this-day .otd-tag{
+    font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);
+    background:rgba(212,175,55,0.12);padding:4px 10px;border-radius:999px;flex-shrink:0;
+  }
+  .on-this-day .otd-text{color:var(--cream-dim);font-size:0.92rem;margin:0;}
   .ruler-wrap{overflow-x:auto;margin-bottom:18px;padding-bottom:6px;}
   .ruler{
     display:flex;gap:0;position:relative;min-width:max-content;
@@ -523,6 +552,7 @@
   }
   .quiz-submit:hover{background:var(--pink);}
   .quiz-result{font-size:1rem;color:var(--gold);min-height:1.2em;}
+  .quiz-best{font-size:0.78rem;color:var(--muted);margin-top:-8px;}
   .q.correct{border-color:var(--gold);}
   .q.correct .qtext::after{content:" ✓";color:var(--gold);}
   .q.wrong .qtext::after{content:" ✗";color:var(--red);}
@@ -711,12 +741,12 @@
 </script>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Aller au contenu</a>
 <div id="readProgress" class="read-progress"></div>
 <noscript>
   <div class="noscript-banner">Certaines fonctionnalités (quiz, filtres, visionneuse, menu mobile) nécessitent JavaScript. Le contenu reste consultable, mais l'expérience sera limitée.</div>
 </noscript>
 
-<div id="progressBar" class="progress-bar"></div>
 <div class="topnav">
   <div class="topnav-inner">
     <div class="brand">E.P.</div>
@@ -731,6 +761,7 @@
       <a href="#anecdotes">Anecdotes</a>
       <a href="#entourage">Entourage</a>
       <a href="#mythes">Mythes</a>
+      <a href="#distinctions">Distinctions</a>
       <a href="#albums">Albums</a>
       <a href="#quiz">Quiz</a>
     </nav>
@@ -744,7 +775,7 @@
   </div>
 </div>
 
-<header class="hero">
+<header class="hero" id="main-content">
   <div class="vinyl" aria-hidden="true"></div>
   <p class="eyebrow">Guide complet — édition fan inconditionnel</p>
   <h1>ELVIS<span>PRESLEY</span></h1>
@@ -770,6 +801,11 @@
     <div class="tag">Partie 1</div>
     <h2>Chronologie détaillée</h2>
     <p class="lead">Sept étapes d'une vie qui a redéfini la musique populaire, de la maison de deux pièces à Tupelo jusqu'à Graceland.</p>
+  </div>
+
+  <div id="onThisDay" class="on-this-day" hidden>
+    <span class="otd-tag mono">Ce jour-là</span>
+    <p class="otd-text"></p>
   </div>
 
   <div class="ruler-wrap">
@@ -1611,6 +1647,31 @@
         <p>Quatuor vocal gospel, ils accompagnent Elvis sur scène et en studio pendant plus d'une décennie, apportant leur son harmonique caractéristique.</p>
       </div>
     </div>
+
+    <div class="person-card">
+      <div class="avatar" style="--av-color:var(--pink)">VP</div>
+      <div class="p-info">
+        <b>Vernon Presley</b>
+        <span>Père, 1916–1979</span>
+        <p>Père d'Elvis, il gère les affaires de son fils dans les dernières années et reste à Graceland après sa mort, jusqu'à la sienne deux ans plus tard.</p>
+      </div>
+    </div>
+    <div class="person-card">
+      <div class="avatar" style="--av-color:var(--muted)">MM</div>
+      <div class="p-info">
+        <b>Minnie Mae Presley</b>
+        <span>Grand-mère paternelle</span>
+        <p>Surnommée « Dodger », elle vit à Graceland auprès d'Elvis pendant de nombreuses années et reste une figure familiale proche jusqu'à sa mort en 1980.</p>
+      </div>
+    </div>
+    <div class="person-card">
+      <div class="avatar" style="--av-color:var(--red)">RW</div>
+      <div class="p-info">
+        <b>Red West</b>
+        <span>Ami d'enfance et garde du corps</span>
+        <p>Camarade de lycée à Humes High, il devient un membre clé de la « Memphis Mafia », l'entourage rapproché qui accompagne Elvis pendant des décennies.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1645,6 +1706,25 @@
     <div class="myth-row"><div class="item fact"><span class="mark">✓</span><p>Il n'a presque jamais joué en dehors de l'Amérique du Nord, malgré sa renommée mondiale.</p></div></div>
     <div class="myth-row"><div class="item fact"><span class="mark">✓</span><p>L'album « Having Fun with Elvis on Stage » ne contient en réalité aucune chanson.</p></div></div>
     <div class="myth-row"><div class="item fact"><span class="mark">✓</span><p>Le Colonel Parker, son manager mythique, était en réalité néerlandais — né Andreas van Kuijk.</p></div></div>
+  </div>
+</section>
+
+<div class="ticket-divider"><div class="line"></div></div>
+
+<!-- DISTINCTIONS -->
+<section id="distinctions" class="wrap">
+  <div class="section-head">
+    <div class="tag">Reconnaissance</div>
+    <h2>Distinctions</h2>
+    <p class="lead">Récompenses et hommages, de son vivant comme après sa mort.</p>
+  </div>
+  <div class="card-grid">
+    <div class="card"><span class="ico">🏆</span><p>3 Grammy Awards remportés de son vivant, tous les trois pour des enregistrements gospel.</p></div>
+    <div class="card"><span class="ico">🏆</span><p>Grammy Lifetime Achievement Award, décerné en 1971.</p></div>
+    <div class="card"><span class="ico">★</span><p>Une étoile sur le Hollywood Walk of Fame, au titre de sa carrière au cinéma.</p></div>
+    <div class="card"><span class="ico">🎖</span><p>Intronisé au Rock and Roll Hall of Fame dès sa création en 1986.</p></div>
+    <div class="card"><span class="ico">🎖</span><p>Intronisé au Country Music Hall of Fame en 1998.</p></div>
+    <div class="card"><span class="ico">🎖</span><p>Intronisé au Gospel Music Hall of Fame, en reconnaissance de ses albums religieux.</p></div>
   </div>
 </section>
 
@@ -1743,6 +1823,7 @@
     </div>
     <button type="submit" class="quiz-submit mono">Voir mon score</button>
     <div id="quizResult" class="quiz-result mono" aria-live="polite"></div>
+    <div id="quizBest" class="quiz-best mono"></div>
   </form>
 </section>
 
@@ -1757,9 +1838,33 @@
 <footer>
   <p><span class="k">Elvis Aaron Presley</span> · 1935 – 1977 · « The King of Rock 'n' Roll »</p>
   <p style="margin-top:6px;">31 films · 24 albums studio · 17 bandes originales · 8 albums live · 700+ titres enregistrés</p>
+  <div class="social-share">
+    <a href="#" class="share-social" data-net="twitter" title="Partager sur Twitter/X">𝕏</a>
+    <a href="#" class="share-social" data-net="whatsapp" title="Partager sur WhatsApp">☎</a>
+    <a href="#" class="share-social" data-net="facebook" title="Partager sur Facebook">f</a>
+    <button id="printBtn" class="share-social" type="button" title="Imprimer / exporter en PDF">⎙</button>
+  </div>
 </footer>
 
 <script>
+  // --- social share links + print button ---
+  (function(){
+    const shareText = encodeURIComponent("Elvis Presley — Guide complet du fan inconditionnel");
+    document.querySelectorAll('.share-social[data-net]').forEach(a=>{
+      a.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const url = encodeURIComponent(location.href);
+        let target = '';
+        if (a.dataset.net === 'twitter') target = `https://twitter.com/intent/tweet?text=${shareText}&url=${url}`;
+        if (a.dataset.net === 'whatsapp') target = `https://wa.me/?text=${shareText}%20${url}`;
+        if (a.dataset.net === 'facebook') target = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        if (target) window.open(target, '_blank', 'noopener');
+      });
+    });
+    const printBtn = document.getElementById('printBtn');
+    if (printBtn) printBtn.addEventListener('click', ()=> window.print());
+  })();
+
   // --- global search across the page ---
   (function(){
     const input = document.getElementById('siteSearch');
@@ -1842,42 +1947,6 @@
 
   // --- reading progress bar ---
   (function(){
-    const bar = document.getElementById('progressBar');
-    if (!bar) return;
-    function update(){
-      const h = document.documentElement;
-      const scrolled = h.scrollTop;
-      const height = h.scrollHeight - h.clientHeight;
-      const pct = height > 0 ? (scrolled / height) * 100 : 0;
-      bar.style.width = pct + '%';
-    }
-    window.addEventListener('scroll', update, { passive:true });
-    update();
-  })();
-
-  // --- active section highlight in nav ---
-  (function(){
-    const navLinks = document.querySelectorAll('#mainNav a');
-    if (!navLinks.length) return;
-    const sections = Array.from(navLinks).map(a=>document.querySelector(a.getAttribute('href'))).filter(Boolean);
-    if (!('IntersectionObserver' in window)) return;
-    const map = new Map();
-    navLinks.forEach((a,i)=>map.set(sections[i], a));
-    const observer = new IntersectionObserver((entries)=>{
-      entries.forEach(entry=>{
-        const link = map.get(entry.target);
-        if (!link) return;
-        if (entry.isIntersecting){
-          navLinks.forEach(a=>a.classList.remove('active'));
-          link.classList.add('active');
-        }
-      });
-    }, { rootMargin: '-40% 0px -50% 0px' });
-    sections.forEach(s=>observer.observe(s));
-  })();
-
-  // --- reading progress bar ---
-  (function(){
     const bar = document.getElementById('readProgress');
     if (!bar) return;
     window.addEventListener('scroll', ()=>{
@@ -1885,6 +1954,58 @@
       const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
       bar.style.width = pct + '%';
     }, { passive:true });
+  })();
+
+  // --- "Ce jour-là" widget ---
+  (function(){
+    const box = document.getElementById('onThisDay');
+    if (!box) return;
+    const textEl = box.querySelector('.otd-text');
+    const tagEl = box.querySelector('.otd-tag');
+    const events = [
+      {m:1, d:8, text:"8 janvier 1935 — Naissance d'Elvis Aaron Presley à Tupelo, Mississippi."},
+      {m:10, d:3, text:"3 octobre 1945 — Premier concours de chant, à 10 ans, au Mississippi-Alabama Fair."},
+      {m:12, d:25, text:"Noël 1946 — Elvis reçoit sa première guitare au lieu du vélo qu'il voulait."},
+      {m:6, d:3, text:"3 juin 1953 — Elvis obtient son diplôme de Humes High School."},
+      {m:7, d:5, text:"5 juillet 1954 — Enregistrement de « That's All Right (Mama) », sa première session marquante."},
+      {m:10, d:16, text:"16 octobre 1954 — Première apparition au Louisiana Hayride."},
+      {m:1, d:10, text:"10 janvier 1956 — Sortie de « Heartbreak Hotel », son premier n°1."},
+      {m:1, d:28, text:"28 janvier 1956 — Première apparition télévisée nationale, au Stage Show."},
+      {m:9, d:9, text:"9 septembre 1956 — Apparition historique à l'Ed Sullivan Show, devant 60 millions de téléspectateurs."},
+      {m:11, d:15, text:"15 novembre 1956 — Sortie de « Love Me Tender », son premier film."},
+      {m:12, d:20, text:"20 décembre 1957 — Elvis reçoit son avis de conscription."},
+      {m:3, d:24, text:"24 mars 1958 — Incorporation dans l'armée américaine."},
+      {m:8, d:14, text:"14 août 1958 — Mort de Gladys Presley, le plus grand choc de sa vie."},
+      {m:3, d:5, text:"5 mars 1960 — Retour d'Allemagne avec le grade de sergent."},
+      {m:5, d:1, text:"1er mai 1967 — Mariage avec Priscilla Beaulieu à l'Aladdin Hotel."},
+      {m:2, d:1, text:"1er février 1968 — Naissance de Lisa Marie Presley."},
+      {m:12, d:3, text:"3 décembre 1968 — Diffusion du '68 Comeback Special."},
+      {m:12, d:21, text:"21 décembre 1970 — Rencontre avec le président Richard Nixon à la Maison-Blanche."},
+      {m:1, d:14, text:"14 janvier 1973 — Concert satellite mondial Aloha from Hawaii."},
+      {m:10, d:9, text:"9 octobre 1973 — Divorce d'avec Priscilla Presley."},
+      {m:8, d:16, text:"16 août 1977 — Mort d'Elvis Presley à Graceland."}
+    ];
+    const today = new Date();
+    const todayMatch = events.find(e => e.m === today.getMonth()+1 && e.d === today.getDate());
+    if (todayMatch){
+      tagEl.textContent = "Ce jour-là";
+      textEl.textContent = todayMatch.text;
+      box.hidden = false;
+    } else {
+      const dayOfYear = (m,d) => new Date(2001, m-1, d).getTime()/86400000;
+      const todayNum = dayOfYear(today.getMonth()+1, today.getDate());
+      let best = null, bestDist = Infinity;
+      events.forEach(e=>{
+        let dist = dayOfYear(e.m, e.d) - todayNum;
+        if (dist < 0) dist += 365;
+        if (dist < bestDist){ bestDist = dist; best = e; }
+      });
+      if (best){
+        tagEl.textContent = "Prochain anniversaire";
+        textEl.textContent = best.text;
+        box.hidden = false;
+      }
+    }
   })();
 
   // --- random anecdote button ---
@@ -2062,7 +2183,56 @@
     else if (score >= questions.length*0.4) verdict = "Pas mal, mais Graceland t'attend pour une révision.";
     else verdict = "Direction la Partie 1 pour une relecture complète.";
     result.textContent = `${score} / ${questions.length} — ${verdict}`;
+
+    // save best score locally
+    try {
+      const bestEl = document.getElementById('quizBest');
+      const prevBest = parseInt(localStorage.getItem('elvisQuizBest') || '0', 10);
+      if (score > prevBest){
+        localStorage.setItem('elvisQuizBest', String(score));
+        bestEl.textContent = `Nouveau record personnel : ${score} / ${questions.length} !`;
+      } else {
+        bestEl.textContent = `Meilleur score enregistré : ${prevBest} / ${questions.length}`;
+      }
+    } catch(err){ /* localStorage indisponible, on ignore */ }
+
+    if (score === questions.length) launchConfetti();
   });
+
+  // --- confetti burst on perfect quiz score ---
+  function launchConfetti(){
+    const colors = ['#d4af37', '#e7a3c2', '#7c2331', '#f3ead9'];
+    for (let i = 0; i < 60; i++){
+      const piece = document.createElement('div');
+      piece.style.position = 'fixed';
+      piece.style.left = Math.random()*100 + 'vw';
+      piece.style.top = '-10px';
+      piece.style.width = piece.style.height = (4 + Math.random()*6) + 'px';
+      piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+      piece.style.opacity = '0.9';
+      piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      piece.style.zIndex = '90';
+      piece.style.pointerEvents = 'none';
+      piece.style.transition = `transform ${2 + Math.random()*1.5}s ease-in, opacity 2s ease-in`;
+      document.body.appendChild(piece);
+      requestAnimationFrame(()=>{
+        piece.style.transform = `translateY(${80 + Math.random()*20}vh) rotate(${Math.random()*360}deg)`;
+        piece.style.opacity = '0';
+      });
+      setTimeout(()=> piece.remove(), 3600);
+    }
+  }
+
+  // --- show saved best score on page load ---
+  (function(){
+    try {
+      const best = localStorage.getItem('elvisQuizBest');
+      const bestEl = document.getElementById('quizBest');
+      if (best && bestEl){
+        bestEl.textContent = `Meilleur score enregistré : ${best} / 10`;
+      }
+    } catch(err){ /* localStorage indisponible */ }
+  })();
 
   // --- share / deep-link buttons, auto-added to every section-head ---
   document.querySelectorAll('.section-head').forEach(head=>{
