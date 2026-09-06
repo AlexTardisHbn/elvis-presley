@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Réinitialiser le mot de passe — Elvis Presley</title>
+<style>
+  :root{
+    --bg:#0d0b12; --bg-alt:#151019; --bg-card:#1b1521;
+    --cream:#f3ead9; --cream-dim:#c9bfae; --gold:#d4af37; --gold-dim:#8c7326;
+    --red:#7c2331; --line: rgba(243,234,217,0.14);
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg); color:var(--cream); font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; margin:0; padding:24px;
+  }
+  .box{width:100%; max-width:420px; background:var(--bg-card); border:1px solid var(--line); border-radius:10px; padding:32px 30px;}
+  h1{font-size:1.3rem; margin:0 0 6px; color:var(--gold);}
+  p.sub{color:var(--cream-dim); font-size:0.9rem; margin:0 0 24px;}
+  label{display:block; font-size:0.85rem; color:var(--cream-dim); margin:14px 0 6px;}
+  input{width:100%; background:var(--bg-alt); border:1px solid var(--line); border-radius:6px; color:var(--cream); padding:10px 12px; font-size:0.95rem;}
+  button{margin-top:18px; width:100%; background:var(--gold); color:#1a0f14; border:none; border-radius:6px; padding:12px; font-weight:700; font-size:0.95rem; cursor:pointer;}
+  button:hover{background:var(--gold-dim); color:var(--cream);}
+  #status{margin-top:14px; font-size:0.88rem; min-height:1.2em;}
+  #status.ok{color:#8fce9a;}
+  #status.err{color:var(--red);}
+  a{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h1>Nouveau mot de passe</h1>
+  <p class="sub" id="subText">Choisis un nouveau mot de passe pour ton compte admin.</p>
+
+  <div id="formArea">
+    <label for="password">Nouveau mot de passe</label>
+    <input type="password" id="password" autocomplete="new-password">
+    <label for="password2">Confirme le mot de passe</label>
+    <input type="password" id="password2" autocomplete="new-password">
+    <button id="saveBtn">Enregistrer le nouveau mot de passe</button>
+  </div>
+  <div id="status"></div>
+  <p id="backLink" style="display:none;margin-top:16px;"><a href="admin.html">← Retour à la page admin</a></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const formArea = document.getElementById('formArea');
+  const status = document.getElementById('status');
+  const subText = document.getElementById('subText');
+  const backLink = document.getElementById('backLink');
+
+  // Le client Supabase détecte automatiquement le token de récupération
+  // présent dans l'URL (envoyé par e-mail) et crée une session temporaire.
+  client.auth.getSession().then(({ data }) => {
+    if (!data.session){
+      subText.textContent = "Lien invalide ou expiré. Redemande une réinitialisation depuis la page admin.";
+      formArea.style.display = 'none';
+      backLink.style.display = 'block';
+    }
+  });
+
+  document.getElementById('saveBtn').addEventListener('click', async () => {
+    const p1 = document.getElementById('password').value;
+    const p2 = document.getElementById('password2').value;
+    if (p1.length < 6){
+      status.textContent = 'Le mot de passe doit faire au moins 6 caractères.';
+      status.className = 'err';
+      return;
+    }
+    if (p1 !== p2){
+      status.textContent = 'Les deux mots de passe ne correspondent pas.';
+      status.className = 'err';
+      return;
+    }
+    status.textContent = 'Enregistrement...';
+    status.className = '';
+    const { error } = await client.auth.updateUser({ password: p1 });
+    if (error){
+      status.textContent = 'Erreur : ' + error.message;
+      status.className = 'err';
+    } else {
+      status.textContent = 'Mot de passe mis à jour ✓';
+      status.className = 'ok';
+      formArea.style.display = 'none';
+      backLink.style.display = 'block';
+    }
+  });
+</script>
+
+</body>
+</html>
