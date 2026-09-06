@@ -350,7 +350,7 @@
       // Notifie Discord uniquement pour une nouvelle publication, publiée
       if (isNewPost && published && insertedRow){
         client.functions.invoke('notify-discord', {
-          body: { title, type, id: insertedRow.id }
+          body: { title, type, id: insertedRow.id, content, coverUrl }
         }).catch(e => console.warn('Notification Discord impossible :', e));
       }
     }
