@@ -275,7 +275,10 @@
 
   <div class="toolbar">
     <h2>Publications</h2>
-    <button id="newPostBtn">+ Nouvelle publication</button>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button id="exportBtn" class="secondary" type="button">⭳ Exporter en CSV</button>
+      <button id="newPostBtn">+ Nouvelle publication</button>
+    </div>
   </div>
   <div class="list-filters">
     <input type="text" id="searchInput" placeholder="Rechercher par titre...">
@@ -309,6 +312,7 @@
     <div id="statusPhoto"></div>
   </div>
 
+  <input type="text" id="gallerySearch" placeholder="Rechercher par légende..." style="margin-bottom:14px;">
   <div id="galleryList" class="gallery-admin-list"></div>
 </div>
 
@@ -468,9 +472,11 @@
         </div>
         <div class="actions">
           <button class="secondary editBtn" style="margin-top:0;">Modifier</button>
+          <button class="secondary duplicateBtn" style="margin-top:0;">Dupliquer</button>
           <button class="danger deleteBtn" style="margin-top:0;">Supprimer</button>
         </div>`;
       row.querySelector('.editBtn').addEventListener('click', () => tryOpenForm(post));
+      row.querySelector('.duplicateBtn').addEventListener('click', () => duplicatePost(post));
       row.querySelector('.deleteBtn').addEventListener('click', () => deletePost(post.id, post.title));
       postsList.appendChild(row);
     });
@@ -478,6 +484,35 @@
 
   searchInput.addEventListener('input', renderPosts);
   filterType.addEventListener('change', renderPosts);
+
+  // ---- Export CSV ----
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    if (!allPosts.length){
+      alert('Aucune publication à exporter.');
+      return;
+    }
+    const escapeCsv = (val) => {
+      const s = (val == null ? '' : String(val)).replace(/"/g, '""');
+      return `"${s}"`;
+    };
+    const header = ['Titre','Type','Publié','Date','Vues','Contenu'];
+    const rows = allPosts.map(p => [
+      p.title,
+      p.type,
+      p.published ? 'oui' : 'non',
+      new Date(p.created_at).toLocaleDateString('fr-FR'),
+      p.views || 0,
+      p.content,
+    ]);
+    const csv = [header, ...rows].map(r => r.map(escapeCsv).join(',')).join('\r\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `publications-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 
   // ---- Formulaire création / édition ----
   document.getElementById('newPostBtn').addEventListener('click', () => tryOpenForm(null));
@@ -534,6 +569,31 @@
     editingId = null;
     currentCoverUrl = null;
     formDirty = false;
+  }
+
+  function duplicatePost(post){
+    if (postForm.style.display === 'block' && formDirty){
+      if (!confirm('Tu as des modifications non enregistrées. Les abandonner ?')) return;
+    }
+    editingId = null;
+    currentCoverUrl = post.cover_url || null;
+    formTitle.textContent = 'Nouvelle publication (dupliquée)';
+    document.getElementById('fType').value = post.type;
+    document.getElementById('fTitle').value = post.title + ' (copie)';
+    document.getElementById('fContent').value = post.content;
+    document.getElementById('fPublished').checked = false;
+    fCoverFile.value = '';
+    coverError.textContent = '';
+    if (currentCoverUrl){
+      fCoverPreview.src = currentCoverUrl;
+      fCoverPreview.style.display = 'block';
+    } else {
+      fCoverPreview.style.display = 'none';
+    }
+    statusForm.textContent = '';
+    formDirty = true;
+    postForm.style.display = 'block';
+    postForm.scrollIntoView({ behavior:'smooth', block:'start' });
   }
 
   document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -649,6 +709,8 @@
   const statusPhoto = document.getElementById('statusPhoto');
   const savePhotoBtn = document.getElementById('savePhotoBtn');
   const galleryList = document.getElementById('galleryList');
+  const gallerySearch = document.getElementById('gallerySearch');
+  gallerySearch.addEventListener('input', renderGallery);
 
   document.getElementById('newPhotoBtn').addEventListener('click', () => {
     fPhotoFile.value = '';
@@ -718,6 +780,8 @@
     }
   });
 
+  let allGalleryPhotos = [];
+
   async function refreshGallery(){
     galleryList.innerHTML = '<p id="emptyMsg">Chargement...</p>';
     const { data, error } = await client
@@ -729,12 +793,24 @@
       galleryList.innerHTML = '<p id="emptyMsg">Erreur de chargement.</p>';
       return;
     }
-    if (!data || data.length === 0){
-      galleryList.innerHTML = '<p id="emptyMsg">Aucune photo pour le moment.</p>';
+    allGalleryPhotos = data || [];
+    renderGallery();
+  }
+
+  function renderGallery(){
+    const query = gallerySearch.value.trim().toLowerCase();
+    const filtered = allGalleryPhotos.filter(photo =>
+      !query || (photo.caption || '').toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0){
+      galleryList.innerHTML = allGalleryPhotos.length === 0
+        ? '<p id="emptyMsg">Aucune photo pour le moment.</p>'
+        : '<p id="emptyMsg">Aucune photo ne correspond à ta recherche.</p>';
       return;
     }
     galleryList.innerHTML = '';
-    data.forEach(photo => {
+    filtered.forEach(photo => {
       const item = document.createElement('div');
       item.className = 'gallery-item';
       item.innerHTML = `

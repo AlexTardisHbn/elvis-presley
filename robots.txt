@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /reset.html
+
+Sitemap: https://alextardishbn.github.io/elvis-presley/sitemap.xml
