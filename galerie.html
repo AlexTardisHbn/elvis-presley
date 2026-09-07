@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galerie — Elvis Presley</title>
+<meta name="description" content="Galerie photo d'Elvis Presley : Graceland, scène, portraits studio et souvenirs de fans.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#0d0b12; --bg-alt:#151019; --bg-card:#1b1521;
+    --cream:#f3ead9; --cream-dim:#c9bfae; --gold:#d4af37; --gold-dim:#8c7326;
+    --pink:#e7a3c2; --red:#7c2331; --muted:#9b8f9e;
+    --line: rgba(243,234,217,0.14); --bg-rgb:13,11,18;
+    --paper:#f3ead9; --paper-dim:#c9bfae; --paper-line: rgba(243,234,217,0.22);
+  }
+  html[data-theme="light"]{
+    --bg:#f7f1e3; --bg-alt:#efe3cb; --bg-card:#fffbf1;
+    --cream:#241a12; --cream-dim:#5a4c3c; --gold:#8f5f0c; --gold-dim:#7a5a0e;
+    --pink:#a8456c; --red:#7c2331; --muted:#7d7061;
+    --line: rgba(36,26,18,0.16); --bg-rgb:247,241,227;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg); color:var(--cream); font-family:'Lora', serif;
+    line-height:1.6; overflow-x:hidden; padding-bottom:80px;
+  }
+  a{color:inherit;}
+  h1,h2{font-family:'Anton', sans-serif; text-transform:uppercase; letter-spacing:0.02em; font-weight:400;}
+  .mono{font-family:'Space Mono', monospace;}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
+
+  .topbar{
+    position:sticky;top:0;z-index:50;background:rgba(var(--bg-rgb),0.9);
+    backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+    padding:16px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .back-link{
+    font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--cream-dim);
+    text-decoration:none;transition:.2s;
+  }
+  .back-link:hover{color:var(--gold);}
+  .theme-toggle{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:none;cursor:pointer;font-size:1rem;transition:.2s;
+  }
+  .theme-toggle:hover{border-color:var(--gold);}
+
+  #maintenanceOverlay{
+    display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);
+    align-items:center;justify-content:center;text-align:center;padding:24px;
+  }
+  .page-head{padding:56px 0 40px;}
+  .page-head .tag{
+    font-family:'Space Mono',monospace;font-size:0.72rem;letter-spacing:0.2em;
+    color:var(--gold);text-transform:uppercase;
+  }
+  .page-head h1{font-size:clamp(2.1rem,5vw,3.4rem);margin-top:8px;}
+  .page-head p.lead{color:var(--cream-dim);max-width:560px;margin-top:12px;font-style:italic;}
+
+  .polaroid-grid{column-count:4;column-gap:22px;}
+  @media(max-width:900px){.polaroid-grid{column-count:3;}}
+  @media(max-width:640px){
+    .polaroid-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;column-count:auto;}
+    .polaroid{margin-bottom:0;}
+    .polaroid .ph{aspect-ratio:1/1;}
+    .polaroid .ph img{width:100%;height:100%;object-fit:cover;}
+  }
+  .polaroid{
+    background:var(--paper);border-radius:2px;padding:10px 10px 16px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+    break-inside:avoid;margin-bottom:22px;display:block;cursor:zoom-in;
+  }
+  .polaroid .ph{background:var(--bg-alt);display:block;color:var(--gold-dim);overflow:hidden;}
+  .polaroid .ph img{width:100%;height:auto;display:block;}
+  .polaroid p{
+    margin-top:10px;text-align:center;color:#1a0f14;font-family:'Space Mono',monospace;
+    font-size:0.72rem;letter-spacing:0.03em;
+  }
+  #galleryEmpty{color:var(--cream-dim);font-style:italic;margin-top:20px;}
+
+  /* ---- lightbox ---- */
+  .lightbox{
+    position:fixed;inset:0;z-index:200;background:rgba(8,6,10,0.92);
+    display:flex;align-items:center;justify-content:center;padding:40px 24px;
+    opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .lightbox.open{opacity:1;pointer-events:auto;}
+  .lightbox figure{margin:0;max-width:min(90vw,780px);text-align:center;}
+  .lightbox img{
+    display:block;max-width:100%;max-height:74vh;margin:0 auto;
+    border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,0.6);
+    transform:scale(0.92);transition:transform .3s ease;
+  }
+  .lightbox.open img{transform:scale(1);}
+  .lightbox figcaption{margin-top:18px;color:var(--paper-dim);font-size:0.82rem;letter-spacing:0.02em;}
+  .lightbox-close{
+    position:absolute;top:22px;right:28px;background:none;border:1px solid var(--paper-line);
+    color:var(--paper);width:40px;height:40px;border-radius:50%;font-size:1.4rem;line-height:1;
+    cursor:pointer;transition:.2s;
+  }
+  .lightbox-close:hover{border-color:var(--gold);color:var(--gold);}
+  .lightbox-nav{
+    position:absolute;top:50%;transform:translateY(-50%);
+    background:none;border:1px solid var(--paper-line);color:var(--paper);
+    width:48px;height:48px;border-radius:50%;font-size:1.8rem;line-height:1;
+    cursor:pointer;transition:.2s;
+  }
+  .lightbox-nav:hover{border-color:var(--gold);color:var(--gold);}
+  .lightbox-prev{left:20px;} .lightbox-next{right:20px;}
+  .lightbox-slideshow{
+    position:absolute; bottom:22px; left:50%; transform:translateX(-50%);
+    background:none; border:1px solid var(--paper-line); color:var(--paper);
+    border-radius:20px; padding:8px 18px; font-size:0.82rem; cursor:pointer; transition:.2s;
+    font-family:'Space Mono',monospace;
+  }
+  .lightbox-slideshow:hover, .lightbox-slideshow.playing{border-color:var(--gold); color:var(--gold);}
+  @media(max-width:640px){
+    .lightbox-nav{width:40px;height:40px;font-size:1.4rem;}
+    .lightbox-prev{left:8px;} .lightbox-next{right:8px;}
+  }
+</style>
+</head>
+<body>
+<div id="maintenanceOverlay">
+  <div>
+    <div class="tag">Retour bientôt</div>
+    <h1>Site en maintenance</h1>
+    <p class="lead" style="margin-top:12px;">Le site est en cours de mise à jour. Repasse un peu plus tard — merci pour ta patience !</p>
+    <a href="admin.html" style="display:inline-block;margin-top:24px;color:var(--cream-dim);text-decoration:none;border:1px solid var(--line);border-radius:20px;padding:9px 20px;font-family:'Space Mono',monospace;font-size:0.82rem;transition:.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)';" onmouseout="this.style.borderColor='var(--line)';this.style.color='var(--cream-dim)';">🔒 Connexion admin</a>
+  </div>
+</div>
+
+<div class="topbar">
+  <a href="index.html" class="back-link">← Retour au site</a>
+  <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème" title="Changer de thème">☀️</button>
+</div>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="tag">Souvenirs</div>
+    <h1>Galerie</h1>
+    <p class="lead">Des instants choisis, de Graceland à la scène, en passant par les portraits studio.</p>
+    <a href="memory.html" class="mono" style="display:inline-block;margin-top:14px;color:var(--gold);text-decoration:none;border:1px solid var(--gold-dim);border-radius:20px;padding:8px 18px;font-size:0.82rem;">🎴 Jouer au memory</a>
+  </div>
+
+  <div class="polaroid-grid" id="polaroidGrid">
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Devant le porche à colonnes de Graceland, tout de blanc vêtu."><img src="images/img-058.webp" alt="Devant le porche à colonnes de Graceland, tout de blanc vêtu." loading="lazy"></button>
+      <p>Devant le porche à colonnes de Graceland, tout de blanc vêtu.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Le retour en costume blanc — l'énergie du '68 Comeback Special."><img src="images/img-059.webp" alt="Le retour en costume blanc — l'énergie du '68 Comeback Special." loading="lazy"></button>
+      <p>Le retour en costume blanc — l'énergie du '68 Comeback Special.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Plan du rez-de-chaussée de Graceland, avec la Jungle Room et la Music Room."><img src="images/img-060.webp" alt="Plan du rez-de-chaussée de Graceland, avec la Jungle Room et la Music Room." loading="lazy"></button>
+      <p>Plan du rez-de-chaussée de Graceland, avec la Jungle Room et la Music Room.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Portrait souriant en pull côtelé, un rare instant détendu."><img src="images/img-061.webp" alt="Portrait souriant en pull côtelé, un rare instant détendu." loading="lazy"></button>
+      <p>Portrait souriant en pull côtelé, un rare instant détendu.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Sur scène, micro à la main, costume clair."><img src="images/img-062.webp" alt="Sur scène, micro à la main, costume clair." loading="lazy"></button>
+      <p>Sur scène, micro à la main, costume clair.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Un instant de calme en coulisses, la main dans les cheveux."><img src="images/img-063.webp" alt="Un instant de calme en coulisses, la main dans les cheveux." loading="lazy"></button>
+      <p>Un instant de calme en coulisses, la main dans les cheveux.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Portrait en col roulé, regard direct — la fin des années 1950."><img src="images/img-064.webp" alt="Portrait en col roulé, regard direct — la fin des années 1950." loading="lazy"></button>
+      <p>Portrait en col roulé, regard direct — la fin des années 1950.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Assis à un bureau, stylo en main — signature de papiers officiels."><img src="images/img-065.webp" alt="Assis à un bureau, stylo en main — signature de papiers officiels." loading="lazy"></button>
+      <p>Assis à un bureau, stylo en main — signature de papiers officiels.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="En coulisses, torse nu, échange avec sa mère Gladys."><img src="images/img-074.webp" alt="En coulisses, torse nu, échange avec sa mère Gladys." loading="lazy"></button>
+      <p>En coulisses, torse nu, échange avec sa mère Gladys.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Avec un petit chien sur l'épaule, grand sourire."><img src="images/img-075.webp" alt="Avec un petit chien sur l'épaule, grand sourire." loading="lazy"></button>
+      <p>Avec un petit chien sur l'épaule, grand sourire.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Gros plan souriant, chemise à motif quadrillé."><img src="images/img-076.webp" alt="Gros plan souriant, chemise à motif quadrillé." loading="lazy"></button>
+      <p>Gros plan souriant, chemise à motif quadrillé.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Veste de cuir noir, regard de côté, guitare à la main."><img src="images/img-077.webp" alt="Veste de cuir noir, regard de côté, guitare à la main." loading="lazy"></button>
+      <p>Veste de cuir noir, regard de côté, guitare à la main.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Émergeant de l'eau d'une piscine, regard droit vers l'objectif."><img src="images/img-078.webp" alt="Émergeant de l'eau d'une piscine, regard droit vers l'objectif." loading="lazy"></button>
+      <p>Émergeant de l'eau d'une piscine, regard droit vers l'objectif.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Avec le Colonel Tom Parker, chapeau et cigare."><img src="images/img-079.webp" alt="Avec le Colonel Tom Parker, chapeau et cigare." loading="lazy"></button>
+      <p>Avec le Colonel Tom Parker, chapeau et cigare.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Sur scène, veste de cuir, fond rouge vif, guitare électrique."><img src="images/img-080.webp" alt="Sur scène, veste de cuir, fond rouge vif, guitare électrique." loading="lazy"></button>
+      <p>Sur scène, veste de cuir, fond rouge vif, guitare électrique.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Veste en jean et chemise rayée, pose de danse pour un film."><img src="images/img-081.webp" alt="Veste en jean et chemise rayée, pose de danse pour un film." loading="lazy"></button>
+      <p>Veste en jean et chemise rayée, pose de danse pour un film.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Face à face avec un chien de chasse, l'air amusé."><img src="images/img-082.webp" alt="Face à face avec un chien de chasse, l'air amusé." loading="lazy"></button>
+      <p>Face à face avec un chien de chasse, l'air amusé.</p>
+    </div>
+    <div class="polaroid">
+      <button class="ph" type="button" data-caption="Deux billets pour une visite guidée de Graceland, les Elvis Experience Tours."><img src="images/img-083.webp" alt="Deux billets pour une visite guidée de Graceland, les Elvis Experience Tours." loading="lazy"></button>
+      <p>Deux billets pour une visite guidée de Graceland, les Elvis Experience Tours.</p>
+    </div>
+  </div>
+
+  <p id="galleryEmpty" style="display:none;">Aucune photo ajoutée pour le moment.</p>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-hidden="true">
+  <button id="lightboxClose" class="lightbox-close" aria-label="Fermer">&times;</button>
+  <button id="lightboxPrev" class="lightbox-nav lightbox-prev" aria-label="Photo précédente">&#8249;</button>
+  <button id="lightboxNext" class="lightbox-nav lightbox-next" aria-label="Photo suivante">&#8250;</button>
+  <button id="slideshowBtn" class="lightbox-slideshow" aria-label="Démarrer le diaporama">▶ Diaporama</button>
+  <figure>
+    <img id="lightboxImg" src="" alt="">
+    <figcaption id="lightboxCap" class="mono"></figcaption>
+  </figure>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
+<script>
+  // ---- thème clair / sombre (même logique que index.html) ----
+  (function(){
+    const toggle = document.getElementById('themeToggle');
+    const root = document.documentElement;
+    function applyTheme(theme){
+      if (theme === 'light'){
+        root.setAttribute('data-theme', 'light');
+        toggle.textContent = '🌙';
+      } else {
+        root.removeAttribute('data-theme');
+        toggle.textContent = '☀️';
+      }
+    }
+    let saved = null;
+    try { saved = localStorage.getItem('theme'); } catch(e){}
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(saved || (prefersLight ? 'light' : 'dark'));
+    toggle.addEventListener('click', ()=>{
+      const isLight = root.getAttribute('data-theme') === 'light';
+      const next = isLight ? 'dark' : 'light';
+      applyTheme(next);
+      try { localStorage.setItem('theme', next); } catch(e){}
+    });
+  })();
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  // ---- charge les photos ajoutées depuis l'admin (Supabase) ----
+  // --- enregistre une visite anonyme (pour les statistiques admin) ---
+  // --- mode maintenance : masque le site aux visiteurs non connectés ---
+  (async function checkMaintenance(){
+    try{
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const [{ data: settings }, { data: sessionData }] = await Promise.all([
+        client.from('site_settings').select('maintenance').eq('id', 'global').single(),
+        client.auth.getSession()
+      ]);
+      const isAdmin = !!(sessionData && sessionData.session);
+      if (settings && settings.maintenance && !isAdmin){
+        document.getElementById('maintenanceOverlay').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+    }catch(e){
+      console.warn('Vérification du mode maintenance impossible :', e);
+    }
+  })();
+
+  (function trackPageView(){
+    try{
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      client.from('page_views').insert({ path: location.pathname }).then(({ error }) => {
+        if (error) console.warn('Comptage de visite impossible :', error);
+      });
+    }catch(e){
+      console.warn('Comptage de visite impossible :', e);
+    }
+  })();
+
+  (async function loadGalleryPhotos(){
+    const grid = document.getElementById('polaroidGrid');
+    try{
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const { data, error } = await client
+        .from('gallery_images')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error || !data || data.length === 0) return;
+
+      data.forEach(photo => {
+        const caption = photo.caption || '';
+        const div = document.createElement('div');
+        div.className = 'polaroid';
+        div.innerHTML = `
+          <button class="ph" type="button" data-caption="${escapeHtml(caption)}">
+            <img src="${escapeHtml(photo.image_url)}" alt="${escapeHtml(caption)}" loading="lazy">
+          </button>
+          ${caption ? `<p>${escapeHtml(caption)}</p>` : ''}
+        `;
+        grid.appendChild(div);
+      });
+
+      initLightboxBindings(); // ré-attache la visionneuse aux photos nouvellement ajoutées
+    }catch(e){
+      console.warn('Chargement des photos de galerie impossible :', e);
+    }
+  })();
+
+  // ---- visionneuse plein écran ----
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lightboxImg');
+  const lbCap = document.getElementById('lightboxCap');
+  const lbClose = document.getElementById('lightboxClose');
+  const lbPrev = document.getElementById('lightboxPrev');
+  const lbNext = document.getElementById('lightboxNext');
+  let currentGroup = [];
+  let currentIndex = -1;
+
+  function show(index){
+    if (!currentGroup.length) return;
+    currentIndex = (index + currentGroup.length) % currentGroup.length;
+    const img = currentGroup[currentIndex];
+    lbImg.src = img.getAttribute('src');
+    lbCap.textContent = img.getAttribute('alt') || '';
+  }
+  function openLightbox(imgEl, group){
+    currentGroup = group;
+    currentIndex = group.indexOf(imgEl);
+    show(currentIndex);
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden','false');
+    lbClose.focus();
+  }
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden','true');
+    lbImg.src = '';
+    currentGroup = [];
+    stopSlideshow();
+  }
+
+  const slideshowBtn = document.getElementById('slideshowBtn');
+  let slideshowTimer = null;
+
+  function stopSlideshow(){
+    if (slideshowTimer){
+      clearInterval(slideshowTimer);
+      slideshowTimer = null;
+    }
+    slideshowBtn.classList.remove('playing');
+    slideshowBtn.textContent = '▶ Diaporama';
+    slideshowBtn.setAttribute('aria-label', 'Démarrer le diaporama');
+  }
+  function startSlideshow(){
+    slideshowTimer = setInterval(() => show(currentIndex + 1), 3000);
+    slideshowBtn.classList.add('playing');
+    slideshowBtn.textContent = '⏸ Pause';
+    slideshowBtn.setAttribute('aria-label', 'Mettre en pause le diaporama');
+  }
+  slideshowBtn.addEventListener('click', () => {
+    if (slideshowTimer) stopSlideshow(); else startSlideshow();
+  });
+  function initLightboxBindings(){
+    const imgs = Array.from(document.querySelectorAll('.polaroid .ph img'));
+    document.querySelectorAll('.polaroid .ph').forEach(ph=>{
+      ph.onclick = () => {
+        const img = ph.querySelector('img');
+        if (img) openLightbox(img, imgs);
+      };
+    });
+  }
+  initLightboxBindings();
+  lbClose.addEventListener('click', closeLightbox);
+  lbPrev.addEventListener('click', ()=>{ stopSlideshow(); show(currentIndex - 1); });
+  lbNext.addEventListener('click', ()=>{ stopSlideshow(); show(currentIndex + 1); });
+  lightbox.addEventListener('click', (e)=>{ if (e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', (e)=>{
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft'){ stopSlideshow(); show(currentIndex - 1); }
+    if (e.key === 'ArrowRight'){ stopSlideshow(); show(currentIndex + 1); }
+  });
+</script>
+
+</body>
+</html>
